@@ -55,18 +55,6 @@ resource "azurerm_public_ip" "pip_outside" {
       "deployed_with"                   = "terraform"
       }     
 }
-resource "azurerm_network_interface" "inside_int" {
-    name                                = "inside_int"
-    location                            = azurerm_resource_group.resGroup.location
-    resource_group_name                 = azurerm_resource_group.resGroup.name
-    enable_ip_forwarding                = true
-
-    ip_configuration {
-        name                            = "internal"
-        subnet_id                       = azurerm_subnet.snet-hubfw.id
-        private_ip_address_allocation   = "Dynamic" 
-    } 
-}
 resource "azurerm_network_interface" "outside_int" {
     name                                = "outside_int"
     location                            = azurerm_resource_group.resGroup.location
@@ -81,31 +69,44 @@ resource "azurerm_network_interface" "outside_int" {
         
     }
 }
+resource "azurerm_network_interface" "inside_int" {
+    name                                = "inside_int"
+    location                            = azurerm_resource_group.resGroup.location
+    resource_group_name                 = azurerm_resource_group.resGroup.name
+    enable_ip_forwarding                = true
+
+    ip_configuration {
+        name                            = "internal"
+        subnet_id                       = azurerm_subnet.snet-hubfw.id
+        private_ip_address_allocation   = "Dynamic" 
+    } 
+}
 resource "azurerm_linux_virtual_machine" "hubPfsense" {
     name                                = "hub-pfsense-fw"
     admin_username                      = "rippee"
     resource_group_name                 = azurerm_resource_group.resGroup.name
     location                            = azurerm_resource_group.resGroup.location
     size                                = "Standard_B1ls"
-    network_interface_ids               = [azurerm_network_interface.inside_int.id,azurerm_network_interface.outside_int.id]
+    network_interface_ids               = [azurerm_network_interface.outside_int.id,azurerm_network_interface.inside_int.id]
     admin_ssh_key {
         username                        = "rippee"
         public_key                      = file("~/.ssh/id_rsa.pub")  
     }
     os_disk {
+      name                              = "hub-pfsense-fw_OsDisk"
       caching                           = "ReadWrite"
       storage_account_type              = "Standard_LRS"  
     }
     source_image_reference {
-      publisher                         =  "Netgate"
+      publisher                         =  "netgate"
       offer                             =  "netgate-pfsense-plus-fw-vpn-router"
       sku                               =  "netgate-pfsense-plus"
-      version                           =  "latest"
+      version                           =  "22.05.0"
     }
     plan {
-      name                              = "netgate-pfsense-plus-fw-vpn-router"
-      product                           = "netgate-pfsense-plus"
-      publisher                         = "Netgate"
+      name                              = "netgate-pfsense-plus"
+      product                           = "netgate-pfsense-plus-fw-vpn-router"
+      publisher                         = "netgate"
     }
     tags = {
       "environment"                     = "dev"
@@ -114,7 +115,7 @@ resource "azurerm_linux_virtual_machine" "hubPfsense" {
     }           
 }
 resource "azurerm_marketplace_agreement" "netgate" {
-  publisher                             = "Netgate"
+  publisher                             = "netgate"
   offer                                 = "netgate-pfsense-plus-fw-vpn-router"
   plan                                  = "netgate-pfsense-plus"
   
