@@ -102,9 +102,21 @@ resource "azurerm_linux_virtual_machine" "hubPfsense" {
       sku                               =  "netgate-pfsense-plus"
       version                           =  "latest"
     }
+    plan {
+      name                              = "netgate-pfsense-plus-fw-vpn-router"
+      product                           = "netgate-pfsense-plus"
+      publisher                         = "Netgate"
+    }
     tags = {
-      "environment"             = "dev"
-      "phase"                   = "testing"
-      "deployed_with"           = "terraform"
+      "environment"                     = "dev"
+      "phase"                           = "testing"
+      "deployed_with"                   = "terraform"
     }           
 }
+resource "azurerm_marketplace_agreement" "netgate" {
+  publisher                             = "Netgate"
+  offer                                 = "netgate-pfsense-plus-fw-vpn-router"
+  plan                                  = "netgate-pfsense-plus"
+  
+}
+
