@@ -81,6 +81,11 @@ resource "azurerm_network_interface" "inside_int" {
         private_ip_address_allocation   = "Dynamic" 
     } 
 }
+/*
+Some notes 
+when coding the network_interface_ids list the the outside interface first. Worked better for me. 
+
+*/
 resource "azurerm_linux_virtual_machine" "hubPfsense" {
     name                                = "hub-pfsense-fw"
     admin_username                      = "rippee"
@@ -114,10 +119,3 @@ resource "azurerm_linux_virtual_machine" "hubPfsense" {
       "deployed_with"                   = "terraform"
     }           
 }
-resource "azurerm_marketplace_agreement" "netgate" {
-  publisher                             = "netgate"
-  offer                                 = "netgate-pfsense-plus-fw-vpn-router"
-  plan                                  = "netgate-pfsense-plus"
-  
-}
-
